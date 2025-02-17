@@ -7,6 +7,7 @@
   <body>
     <script>
 let mic;
+      let temblar;
      
     
       function setup() {
@@ -15,15 +16,18 @@ let mic;
         mic.start();// activa el micròfon
 }
 function draw() {
+  temblar=random(10,50)
+  
   let vol=mic.getLevel();
   let h=map(vol,0,1,0,800);
-  background(0, 255-h, 155);
-  fill(217, 190+h, 150);
-  ellipse(windowWidth/2,windowHeight/2,300,300);
-  fill(42, 31-h, 13+h);
-  ellipse(windowWidth/2-70,windowHeight/2-60,50,50);
-  ellipse(windowWidth/2+70,windowHeight/2-60,50,50);
-  arc(windowWidth/2,windowHeight/2+90,100,50+h,0,PI);
+  background(0, 255-h, 155);//color de fons
+  fill(217, 190+h, 150);//color cara
+  ellipse(windowWidth/2,windowHeight/2,300+temblar,300+temblar);//cara
+  //el primer que hi ha entre parentesis es diu parametre
+  fill(42, 31-h, 13+h);//color ulls
+  ellipse(windowWidth/2-70,windowHeight/2-60,50,50);//ull dret
+  ellipse(windowWidth/2+70,windowHeight/2-60,50,50);//ull esquerra
+  arc(windowWidth/2,windowHeight/2+90,100,50+h,0,PI);//boca
 }
     </script>
 </body>

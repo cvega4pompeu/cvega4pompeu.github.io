@@ -1,110 +1,705 @@
 <!DOCTYPE html>
-<!-- ondoca qie el document és HTML5 -->
-<html>
+<html lang="ca">
 <head>
-<!-- la seccio head conté metadades i enllaços a fitxers externs-->
-
-  <meta charste="UFT-8">
-  <!-- Defineiz la codificació de caràcters a UFT-8, que suporta els accents i simbols especials -->
-
-  <title>Art Geometric amd Mini Cara i Text Gran</title>
-<!-- Definrix el títol de la pa`gina que apereixerà a la pestanya del navegador -->
-
-  <!--Llibreries necessàries: s'iclouen des de servidors externs -->
+  <meta charset="UTF-8">
+  <title>Art Geomètric Amb Expressió Facial</title>
+  <!-- Llibreria p5.js per fer gràfics interactius -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.js"></script>
-  <!-- Aquesta és la biblioteca p5.js, que facilita la creació de gràfics i animacions en el navegador -->
-
-  <script src="https://cnd.jdselivr.net/gh/ml5js/Intro.ML-Arts-IMA@ml5-build-10-7-19/ml5_build/ml5.min.js2"></script>
-  <!--Aquesta és la biblioteca p5.js, que ens permet utilitzar models d'intel·ligència artificial com la detecció facial -->
-
+  <!-- Llibreria ml5.js per reconeixement facial amb machine learning -->
+  <script src="https://cdn.jsdelivr.net/gh/ml5js/Intro-ML-Arts-IMA@ml5-build-10-7-19/ml5_build/ml5.min.js"></script>
   <style>
-    /* Inici del codi CSS per donar estil a la pàgina */
-
-    body{
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-      /* Fons de color gris clar */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* La pàgina està centrada i es distribueixen els elements en columna */
+    /* Estil general del cos de la pàgina */
+    body {
+      margin: 0; /* sense marges externs */
+      padding: 0; /* sense espais interns */
+      background-color: #f4f4f4; /* color de fons gris clar */
+      display: flex; /* fa servir flexbox per alinear */
+      justify-content: center; /* centra horitzontalment */
+      align-items: center; /* centra verticalment */
+      height: 100vh; /* alçada de tota la pantalla */
     }
 
-    /* Estils per a la pantalla de càrrega que es mostra abans que es carreguin els models */
+    /* Pantalla de càrrega quan els models encara es carreguen */
     #loading-screen {
-    position: fixed;
-      /* La pantalla de càrrega es manté fixa en tot moment a la finestra del navegador */
+      position: fixed; /* fixa la posició a la pantalla */
       top: 0;
-left: 0;
-width: 100%;
-height: 100%;
-background: rgba(255,255,255,0.9);
-/*Fons blanc amb lleugera transparència*/
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-/*Centra el contingut de la pantalla (loader i text)*/
-font-family: Arial, sans-serif;
-font-size: 18px;
-color: #333;
-/*Text en gris fosc per a bona llegibilitat*/
-z-index: 10;
-/*Es col·loca per sobre de tot el contingut (amb un índex z alt)*/
-}
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.9); /* blanc amb transparència */
+      display: flex;
+      flex-direction: column; /* columna vertical */
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      font-size: 18px;
+      color: #333; /* gris fosc */
+      z-index: 10; /* per sobre de tot */
+    }
 
-.loader {
-width: 50px:
-height: 50px:
-border: 6px solid #3498db;
-/*Marge de 6 píxels de grosor amb color blau (part de la vora)*/
-border-top: 6px solid transparent;
-/*La part superior és transparent per fer l'efecte giratori*/
-border-radius: 50%;
-/*Fa el loader circular*/
-animation: spin 1s linear infinite;
-/*Aplica una animación que fa girar l'element indefinidament*/
-margin-bottom: 10px;
-}
+    /* Rodona animada de càrrega */
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 6px solid #3498db; /* blau */
+      border-top: 6px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 10px;
+    }
 
-/*Declaració de la keyframe de l'animació que fa girar l'element loader*/
-@keyframes spin {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
-}
-/*Fi de l'estil CSS*/
-
-<body>
-<!-- Cos del document: aquí es col·loca el contingut visible a la pàgina -->
-
-<!-- Pantalla de càrrega: s'exhibeix mentre es carreguen els models de detecció facial -->
-    <div id ="loading-screen">
-    <div class="loader"></div>
-    <!-- Elements visual que gira per mostrar que s'està carregant -->
-    <p>Carreguen models, si us plau, espera... </p>
-    <!-- Missatge per informar a l'usuati que s'està carregant al model -->
-    </div>
-
-    <script>
-    /*Inici del codi JavaScript */
-
-    // Declarem variables globals utilitzades en codi let faceapi;
-    // Aquesta varuable emmagatzemarà el model de detecció facial de ml5.js
-
-    let detections=[];
-    // Array on es on guardaran els resultats (deteccions) que ens proporciona el model facial
-
-    let video;
-    // Variable que guardarà la cpatura de vídeo de càmera
-
-    let modelsMostrats = flase;
-    // Variable booleana per controlar si ja s'ha amagat la pantalla de càrrega
-
-    // Variables per a la mida de la mini imatge de la cara que es mostrarà
-    conts miniWidth 
-    
+    /* Animació de gir */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
-</title>
 </head>
+<body>
+  <!-- Div visible mentre es carreguen els models -->
+  <div id="loading-screen">
+    <div class="loader"></div>
+    <p>Carregant models, si us plau, espera...</p>
+  </div>
+  <script>
+    // Variables globals
+    let faceapi, detections = [], video;
+    let modelsMostrats = false;
+
+    // Mida virtual que es manté proporcional a qualsevol pantalla
+    const VIRTUAL_W = 800;
+    const VIRTUAL_H = 600;
+
+    // Funció que es crida al començar
+    function setup() {
+      createCanvas(windowWidth, windowHeight); // crea una zona de dibuix de la mida de la finestra
+      video = createCapture(VIDEO);            // activa la webcam
+      video.size(480, 480);                    // estableix la mida del vídeo
+      video.hide();                            // amaga el vídeo per defecte
+
+      // Configura els paràmetres del reconeixement facial
+      const options = {
+        withLandmarks: true,
+        withExpressions: true,
+        withDescriptors: false
+      };
+      faceapi = ml5.faceApi(video, options, modelReady); // inicialitza el model amb la webcam
+    }
+
+    // Redimensiona el canvas si canvia la mida de la finestra
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+
+    // Quan el model està carregat correctament
+    function modelReady() {
+      faceapi.detect(gotResults); // comença a detectar cares
+    }
+
+    // Quan hi ha resultats del model
+    function gotResults(err, result) {
+      if (err) return console.error(err); // mostra error si hi ha
+      detections = result; // desa les dades de la detecció
+      if (!modelsMostrats) {
+        document.getElementById("loading-screen").style.display = "none";
+        modelsMostrats = true;
+      }
+      faceapi.detect(gotResults); // torna a detectar de forma continua
+    }
+
+    // Funció de dibuix
+    function draw() {
+      background(255); // fons blanc
+
+      // Inicialitzem l'estat emocional detectat
+      let dominant = "neutral", intensity = 0;
+      if (detections.length > 0) {
+        let expr = detections[0].expressions;
+        dominant = Object.keys(expr).reduce((a, b) => expr[a] > expr[b] ? a : b);
+        intensity = expr[dominant];
+      }
+
+      // Calcular escala i marges per centrar el dibuix virtual a la pantalla
+      let scaleFactor = min(width / VIRTUAL_W, height / VIRTUAL_H);
+      let offsetX = (width - VIRTUAL_W * scaleFactor) / 2;
+      let offsetY = (height - VIRTUAL_H * scaleFactor) / 2;
+
+      // Aplicar transformacions per mantenir el dibuix centrat i escalat
+      push(); // desa l'estat de transformació
+      translate(offsetX, offsetY); // desplaça l'origen
+      scale(scaleFactor); // redimensiona proporcionalment
+      drawArt(dominant, intensity); // dibuixa la figura segons l'expressió
+      pop(); // recupera l'estat anterior
+
+      // Mostra el text amb l'expressió dominant (fora de transformacions)
+      noStroke();
+      fill(44,169,225);
+      textSize(32);
+      textAlign(CENTER, TOP);
+      text("Expressió: " + dominant, width / 2, 10);
+
+      // Mostra el vídeo si hi ha detecció
+      if (detections.length > 0) {
+        image(video, width - 140, height - 140, 120, 120);
+      }
+    }
+
+    // Dibuixa diferents figures depenent de l'estat emocional
+    function drawArt(dominant, intensity) {
+      noFill();
+      strokeWeight(4);
+
+      switch (dominant) {
+        case 'happy':
+          stroke(255,200,0); // groc
+          beginShape();
+         beginShape();
+vertex(203, 159.1875);
+vertex(144, 155.1875);
+vertex(141, 67.1875);
+vertex(147, 62.1875);
+vertex(152, 59.1875);
+vertex(159, 60.1875);
+vertex(162, 60.1875);
+vertex(166, 60.1875);
+vertex(172, 63.1875);
+vertex(172, 63.1875);
+vertex(175, 66.1875);
+vertex(178, 73.1875);
+vertex(176, 78.1875);
+vertex(171, 82.1875);
+vertex(169, 86.1875);
+vertex(173, 126.1875);
+vertex(218, 126.1875);
+vertex(225, 125.1875);
+vertex(226, 128.1875);
+vertex(229, 131.1875);
+vertex(233, 135.1875);
+vertex(234, 140.1875);
+vertex(237, 142.1875);
+vertex(242, 146.1875);
+vertex(223, 120.1875);
+vertex(223, 113.1875);
+vertex(223, 103.1875);
+vertex(227, 94.1875);
+vertex(232, 89.1875);
+vertex(239, 84.1875);
+vertex(248, 80.1875);
+vertex(255, 79.1875);
+vertex(263, 79.1875);
+vertex(270, 81.1875);
+vertex(275, 83.1875);
+vertex(282, 89.1875);
+vertex(288, 97.1875);
+vertex(290, 106.1875);
+vertex(291, 115.1875);
+vertex(290, 123.1875);
+vertex(288, 131.1875);
+vertex(285, 137.1875);
+vertex(290, 114.1875);
+vertex(334, 107.1875);
+vertex(335, 53.1875);
+vertex(341, 47.1875);
+vertex(349, 47.1875);
+vertex(355, 47.1875);
+vertex(365, 50.1875);
+vertex(371, 56.1875);
+vertex(371, 62.1875);
+vertex(368, 66.1875);
+vertex(363, 69.1875);
+vertex(358, 73.1875);
+vertex(361, 130.1875);
+vertex(310, 141.1875);
+vertex(304, 193.1875);
+vertex(357, 207.1875);
+vertex(349, 259.1875);
+vertex(355, 259.1875);
+vertex(360, 260.1875);
+vertex(366, 261.1875);
+vertex(371, 265.1875);
+vertex(377, 268.1875);
+vertex(379, 274.1875);
+vertex(378, 282.1875);
+vertex(368, 288.1875);
+vertex(357, 290.1875);
+vertex(322, 288.1875);
+vertex(320, 239.1875);
+vertex(279, 231.1875);
+vertex(275, 308.1875);
+vertex(382, 317.1875);
+vertex(424, 235.1875);
+vertex(431, 235.1875);
+vertex(439, 234.1875);
+vertex(445, 234.1875);
+vertex(451, 234.1875);
+vertex(457, 235.1875);
+vertex(461, 237.1875);
+vertex(467, 240.1875);
+vertex(469, 246.1875);
+vertex(469, 255.1875);
+vertex(466, 263.1875);
+vertex(457, 264.1875);
+vertex(448, 269.1875);
+vertex(442, 271.1875);
+vertex(411, 348.1875);
+vertex(299, 356.1875);
+vertex(298, 400.1875);
+vertex(388, 387.1875);
+vertex(416, 433.1875);
+vertex(423, 431.1875);
+vertex(432, 428.1875);
+vertex(440, 423.1875);
+vertex(448, 420.1875);
+vertex(455, 419.1875);
+vertex(463, 419.1875);
+vertex(474, 421.1875);
+vertex(479, 427.1875);
+vertex(476, 433.1875);
+vertex(475, 436.1875);
+vertex(418, 477.1875);
+vertex(409, 475.1875);
+vertex(402, 471.1875);
+vertex(393, 466.1875);
+vertex(381, 460.1875);
+vertex(374, 452.1875);
+vertex(368, 443.1875);
+vertex(362, 434.1875);
+vertex(356, 429.1875);
+vertex(314, 442.1875);
+vertex(328, 497.1875);
+vertex(440, 506.1875);
+vertex(492, 448.1875);
+vertex(498, 447.1875);
+vertex(506, 448.1875);
+vertex(513, 448.1875);
+vertex(518, 450.1875);
+vertex(524, 453.1875);
+vertex(533, 457.1875);
+vertex(534, 462.1875);
+vertex(535, 465.1875);
+vertex(534, 472.1875);
+vertex(532, 474.1875);
+vertex(528, 478.1875);
+vertex(521, 480.1875);
+vertex(513, 482.1875);
+vertex(507, 483.1875);
+vertex(453, 549.1875);
+vertex(351, 543.1875);
+vertex(356, 555.1875);
+vertex(359, 562.1875);
+vertex(361, 570.1875);
+vertex(364, 576.1875);
+vertex(366, 584.1875);
+vertex(368, 592.1875);
+vertex(369, 600.1875);
+vertex(369, 610.1875);
+vertex(368, 621.1875);
+vertex(367, 629.1875);
+vertex(364, 641.1875);
+vertex(360, 652.1875);
+vertex(355, 661.1875);
+vertex(352, 668.1875);
+vertex(347, 674.1875);
+vertex(342, 681.1875);
+vertex(419, 714.1875);
+vertex(404, 756.1875);
+vertex(398, 762.1875);
+vertex(394, 765.1875);
+vertex(388, 768.1875);
+vertex(380, 768.1875);
+vertex(371, 764.1875);
+vertex(370, 757.1875);
+vertex(370, 747.1875);
+vertex(372, 735.1875);
+vertex(307, 703.1875);
+vertex(301, 651.1875);
+vertex(209, 687.1875);
+vertex(229, 744.1875);
+vertex(203, 763.1875);
+vertex(195, 764.1875);
+vertex(185, 767.1875);
+vertex(174, 768.1875);
+vertex(164, 767.1875);
+vertex(154, 762.1875);
+vertex(154, 753.1875);
+vertex(158, 744.1875);
+vertex(166, 737.1875);
+vertex(174, 734.1875);
+vertex(185, 730.1875);
+vertex(163, 678.1875);
+vertex(236, 631.1875);
+vertex(237, 573.1875);
+vertex(69, 617.1875);
+vertex(60, 616.1875);
+vertex(57, 611.1875);
+vertex(53, 603.1875);
+vertex(50, 595.1875);
+vertex(49, 586.1875);
+vertex(50, 577.1875);
+vertex(53, 569.1875);
+vertex(59, 567.1875);
+vertex(64, 567.1875);
+vertex(72, 567.1875);
+vertex(79, 570.1875);
+vertex(85, 575.1875);
+vertex(88, 582.1875);
+vertex(202, 541.1875);
+vertex(247, 512.1875);
+vertex(223, 439.1875);
+vertex(143, 466.1875);
+vertex(154, 516.1875);
+vertex(148, 524.1875);
+vertex(141, 528.1875);
+vertex(131, 531.1875);
+vertex(124, 533.1875);
+vertex(116, 536.1875);
+vertex(107, 538.1875);
+vertex(96, 541.1875);
+vertex(86, 541.1875);
+vertex(80, 533.1875);
+vertex(83, 523.1875);
+vertex(91, 519.1875);
+vertex(101, 514.1875);
+vertex(110, 507.1875);
+vertex(96, 442.1875);
+vertex(149, 417.1875);
+vertex(192, 402.1875);
+vertex(192, 362.1875);
+vertex(76, 362.1875);
+vertex(70, 283.1875);
+vertex(62, 280.1875);
+vertex(54, 279.1875);
+vertex(43, 271.1875);
+vertex(43, 259.1875);
+vertex(52, 251.1875);
+vertex(63, 249.1875);
+vertex(73, 249.1875);
+vertex(87, 249.1875);
+vertex(92, 252.1875);
+vertex(116, 320.1875);
+vertex(214, 305.1875);
+vertex(215, 233.1875);
+vertex(179, 238.1875);
+vertex(177, 279.1875);
+vertex(142, 288.1875);
+vertex(133, 288.1875);
+vertex(129, 281.1875);
+vertex(133, 273.1875);
+vertex(141, 267.1875);
+vertex(149, 261.1875);
+vertex(139, 218.1875);
+vertex(207, 192.1875);
+vertex(203, 158.1875);
+
+          endShape(CLOSE);
+          break;
+
+        case 'sad':
+          stroke(50,100,200,150); // blau
+          beginShape();
+          for (let x = 0; x <= 400; x += 40)
+            vertex(200 + x, 300 + 100 * intensity);
+          for (let x = 400; x >= 0; x -= 40)
+            vertex(200 + x, 300 - 50 * intensity);
+          endShape(CLOSE);
+          break;
+
+        case 'angry':
+          stroke(200,0,0,150); // vermell
+          beginShape();
+          for (let i = 0; i < 16; i++) {
+            let angle = map(i, 0, 16, 0, TWO_PI);
+            let r = i % 2 ? 100 : 175;
+            let x = VIRTUAL_W/2 + r * cos(angle);
+            let y = VIRTUAL_H/2 + r * sin(angle);
+            vertex(x, y);
+          }
+          endShape(CLOSE);
+          break;
+
+        case 'fearful':
+          stroke(100,100,100,150); // gris
+          beginShape();
+beginShape();
+vertex(203, 159.1875);
+vertex(144, 155.1875);
+vertex(141, 67.1875);
+vertex(147, 62.1875);
+vertex(152, 59.1875);
+vertex(159, 60.1875);
+vertex(162, 60.1875);
+vertex(166, 60.1875);
+vertex(172, 63.1875);
+vertex(172, 63.1875);
+vertex(175, 66.1875);
+vertex(178, 73.1875);
+vertex(176, 78.1875);
+vertex(171, 82.1875);
+vertex(169, 86.1875);
+vertex(173, 126.1875);
+vertex(218, 126.1875);
+vertex(225, 125.1875);
+vertex(226, 128.1875);
+vertex(229, 131.1875);
+vertex(233, 135.1875);
+vertex(234, 140.1875);
+vertex(237, 142.1875);
+vertex(242, 146.1875);
+vertex(223, 120.1875);
+vertex(223, 113.1875);
+vertex(223, 103.1875);
+vertex(227, 94.1875);
+vertex(232, 89.1875);
+vertex(239, 84.1875);
+vertex(248, 80.1875);
+vertex(255, 79.1875);
+vertex(263, 79.1875);
+vertex(270, 81.1875);
+vertex(275, 83.1875);
+vertex(282, 89.1875);
+vertex(288, 97.1875);
+vertex(290, 106.1875);
+vertex(291, 115.1875);
+vertex(290, 123.1875);
+vertex(288, 131.1875);
+vertex(285, 137.1875);
+vertex(290, 114.1875);
+vertex(334, 107.1875);
+vertex(335, 53.1875);
+vertex(341, 47.1875);
+vertex(349, 47.1875);
+vertex(355, 47.1875);
+vertex(365, 50.1875);
+vertex(371, 56.1875);
+vertex(371, 62.1875);
+vertex(368, 66.1875);
+vertex(363, 69.1875);
+vertex(358, 73.1875);
+vertex(361, 130.1875);
+vertex(310, 141.1875);
+vertex(304, 193.1875);
+vertex(357, 207.1875);
+vertex(349, 259.1875);
+vertex(355, 259.1875);
+vertex(360, 260.1875);
+vertex(366, 261.1875);
+vertex(371, 265.1875);
+vertex(377, 268.1875);
+vertex(379, 274.1875);
+vertex(378, 282.1875);
+vertex(368, 288.1875);
+vertex(357, 290.1875);
+vertex(322, 288.1875);
+vertex(320, 239.1875);
+vertex(279, 231.1875);
+vertex(275, 308.1875);
+vertex(382, 317.1875);
+vertex(424, 235.1875);
+vertex(431, 235.1875);
+vertex(439, 234.1875);
+vertex(445, 234.1875);
+vertex(451, 234.1875);
+vertex(457, 235.1875);
+vertex(461, 237.1875);
+vertex(467, 240.1875);
+vertex(469, 246.1875);
+vertex(469, 255.1875);
+vertex(466, 263.1875);
+vertex(457, 264.1875);
+vertex(448, 269.1875);
+vertex(442, 271.1875);
+vertex(411, 348.1875);
+vertex(299, 356.1875);
+vertex(298, 400.1875);
+vertex(388, 387.1875);
+vertex(416, 433.1875);
+vertex(423, 431.1875);
+vertex(432, 428.1875);
+vertex(440, 423.1875);
+vertex(448, 420.1875);
+vertex(455, 419.1875);
+vertex(463, 419.1875);
+vertex(474, 421.1875);
+vertex(479, 427.1875);
+vertex(476, 433.1875);
+vertex(475, 436.1875);
+vertex(418, 477.1875);
+vertex(409, 475.1875);
+vertex(402, 471.1875);
+vertex(393, 466.1875);
+vertex(381, 460.1875);
+vertex(374, 452.1875);
+vertex(368, 443.1875);
+vertex(362, 434.1875);
+vertex(356, 429.1875);
+vertex(314, 442.1875);
+vertex(328, 497.1875);
+vertex(440, 506.1875);
+vertex(492, 448.1875);
+vertex(498, 447.1875);
+vertex(506, 448.1875);
+vertex(513, 448.1875);
+vertex(518, 450.1875);
+vertex(524, 453.1875);
+vertex(533, 457.1875);
+vertex(534, 462.1875);
+vertex(535, 465.1875);
+vertex(534, 472.1875);
+vertex(532, 474.1875);
+vertex(528, 478.1875);
+vertex(521, 480.1875);
+vertex(513, 482.1875);
+vertex(507, 483.1875);
+vertex(453, 549.1875);
+vertex(351, 543.1875);
+vertex(356, 555.1875);
+vertex(359, 562.1875);
+vertex(361, 570.1875);
+vertex(364, 576.1875);
+vertex(366, 584.1875);
+vertex(368, 592.1875);
+vertex(369, 600.1875);
+vertex(369, 610.1875);
+vertex(368, 621.1875);
+vertex(367, 629.1875);
+vertex(364, 641.1875);
+vertex(360, 652.1875);
+vertex(355, 661.1875);
+vertex(352, 668.1875);
+vertex(347, 674.1875);
+vertex(342, 681.1875);
+vertex(419, 714.1875);
+vertex(404, 756.1875);
+vertex(398, 762.1875);
+vertex(394, 765.1875);
+vertex(388, 768.1875);
+vertex(380, 768.1875);
+vertex(371, 764.1875);
+vertex(370, 757.1875);
+vertex(370, 747.1875);
+vertex(372, 735.1875);
+vertex(307, 703.1875);
+vertex(301, 651.1875);
+vertex(209, 687.1875);
+vertex(229, 744.1875);
+vertex(203, 763.1875);
+vertex(195, 764.1875);
+vertex(185, 767.1875);
+vertex(174, 768.1875);
+vertex(164, 767.1875);
+vertex(154, 762.1875);
+vertex(154, 753.1875);
+vertex(158, 744.1875);
+vertex(166, 737.1875);
+vertex(174, 734.1875);
+vertex(185, 730.1875);
+vertex(163, 678.1875);
+vertex(236, 631.1875);
+vertex(237, 573.1875);
+vertex(69, 617.1875);
+vertex(60, 616.1875);
+vertex(57, 611.1875);
+vertex(53, 603.1875);
+vertex(50, 595.1875);
+vertex(49, 586.1875);
+vertex(50, 577.1875);
+vertex(53, 569.1875);
+vertex(59, 567.1875);
+vertex(64, 567.1875);
+vertex(72, 567.1875);
+vertex(79, 570.1875);
+vertex(85, 575.1875);
+vertex(88, 582.1875);
+vertex(202, 541.1875);
+vertex(247, 512.1875);
+vertex(223, 439.1875);
+vertex(143, 466.1875);
+vertex(154, 516.1875);
+vertex(148, 524.1875);
+vertex(141, 528.1875);
+vertex(131, 531.1875);
+vertex(124, 533.1875);
+vertex(116, 536.1875);
+vertex(107, 538.1875);
+vertex(96, 541.1875);
+vertex(86, 541.1875);
+vertex(80, 533.1875);
+vertex(83, 523.1875);
+vertex(91, 519.1875);
+vertex(101, 514.1875);
+vertex(110, 507.1875);
+vertex(96, 442.1875);
+vertex(149, 417.1875);
+vertex(192, 402.1875);
+vertex(192, 362.1875);
+vertex(76, 362.1875);
+vertex(70, 283.1875);
+vertex(62, 280.1875);
+vertex(54, 279.1875);
+vertex(43, 271.1875);
+vertex(43, 259.1875);
+vertex(52, 251.1875);
+vertex(63, 249.1875);
+vertex(73, 249.1875);
+vertex(87, 249.1875);
+vertex(92, 252.1875);
+vertex(116, 320.1875);
+vertex(214, 305.1875);
+vertex(215, 233.1875);
+vertex(179, 238.1875);
+vertex(177, 279.1875);
+vertex(142, 288.1875);
+vertex(133, 288.1875);
+vertex(129, 281.1875);
+vertex(133, 273.1875);
+vertex(141, 267.1875);
+vertex(149, 261.1875);
+vertex(139, 218.1875);
+vertex(207, 192.1875);
+vertex(203, 158.1875);
+endShape();
+          endShape();
+          break;
+
+        case 'surprised':
+          stroke(0,150,255,150); // blau clar
+          beginShape();
+          for (let i = 0; i < 20; i++) {
+            let angle = random(TWO_PI);
+            let r = 50 + 100 * intensity;
+            let x = VIRTUAL_W/2 + r * cos(angle);
+            let y = VIRTUAL_H/2 + r * sin(angle);
+            vertex(x, y);
+          }
+          endShape(CLOSE);
+          break;
+
+        case 'disgusted':
+          stroke(0,150,0,150); // verd
+          beginShape();
+          for (let i = 0; i < 12; i++) {
+            let angle = map(i, 0, 12, 0, TWO_PI);
+            let r = 75 + random(-50, 50) * intensity;
+            let x = VIRTUAL_W/2 + r * cos(angle);
+            let y = VIRTUAL_H/2 + r * sin(angle);
+            vertex(x, y);
+          }
+          endShape(CLOSE);
+          break;
+
+        default:
+          stroke(150,150,150,150); // gris suau
+          beginShape();
+          vertex(0, 0);
+          vertex(VIRTUAL_W, 0);
+          vertex(VIRTUAL_W, VIRTUAL_H);
+          vertex(0, VIRTUAL_H);
+          endShape(CLOSE);
+      }
+    }
+  </script>
+</body>
 </html>
+
+
+

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Emotion Mirror</title>
+    <style>
+        body {
+            text-align: center;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #video {
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        #face-canvas {
+            display: block;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ccc;
+        }
+        #loading {
+            margin-top: 20px;
+            color: #888;
+        }
+        #emotion-label {
+            font-size: 2em;
+            margin-top: 10px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Emotion Mirror 😃😡😮😢😐😲</h1>
+    <video id="video" width="320" height="240" autoplay muted playsinline></video>
+    <canvas id="face-canvas" width="200" height="200"></canvas>
+    <div id="emotion-label">No face detected</div>
+    <div id="loading">Loading face detection model...</div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2"></script>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('face-canvas');
+        const ctx = canvas.getContext('2d');
+        const loadingDiv = document.getElementById('loading');
+        const emotionLabel = document.getElementById('emotion-label');
+
+        // List of emotions supported by face-api.js
+        const EMOJIS = {
+            happy: '😃',
+            sad: '😢',
+            angry: '😡',
+            surprised: '😮',
+            fearful: '😱',
+            disgusted: '🤢',
+            neutral: '😐'
+        };
+
+        // Draws a cartoon face with a specific emotion
+        function drawFace(emotion) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Face outline
+            ctx.beginPath();
+            ctx.arc(100, 100, 80, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffe0bd';
+            ctx.fill();
+            ctx.strokeStyle = '#bfa074';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Eyes
+            ctx.beginPath();
+            ctx.arc(70, 90, 10, 0, Math.PI * 2);
+            ctx.arc(130, 90, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#222';
+            ctx.fill();
+
+            // Eyebrows (vary by emotion)
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#a0522d';
+            if (emotion === 'angry') {
+                // Slanted down
+                ctx.beginPath();
+                ctx.moveTo(60, 75);
+                ctx.lineTo(80, 85);
+                ctx.moveTo(120, 85);
+                ctx.lineTo(140, 75);
+                ctx.stroke();
+            } else if (emotion === 'surprised' || emotion === 'fearful') {
+                // Raised
+                ctx.beginPath();
+                ctx.moveTo(60, 75);
+                ctx.lineTo(80, 70);
+                ctx.moveTo(120, 70);
+                ctx.lineTo(140, 75);
+                ctx.stroke();
+            } else if (emotion === 'sad' || emotion === 'disgusted') {
+                // Slanted up
+                ctx.beginPath();
+                ctx.moveTo(60, 85);
+                ctx.lineTo(80, 75);
+                ctx.moveTo(120, 75);
+                ctx.lineTo(140, 85);
+                ctx.stroke();
+            } else {
+                // Neutral
+                ctx.beginPath();
+                ctx.moveTo(60, 78);
+                ctx.lineTo(80, 78);
+                ctx.moveTo(120, 78);
+                ctx.lineTo(140, 78);
+                ctx.stroke();
+            }
+
+            // Mouth (vary by emotion)
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = '#a0522d';
+            ctx.beginPath();
+            if (emotion === 'happy') {
+                ctx.arc(100, 120, 35, 0.15 * Math.PI, 0.85 * Math.PI, false);
+            } else if (emotion === 'sad') {
+                ctx.arc(100, 150, 25, 1.15 * Math.PI, 1.85 * Math.PI, true);
+            } else if (emotion === 'angry' || emotion === 'disgusted') {
+                ctx.moveTo(80, 140);
+                ctx.lineTo(120, 140);
+            } else if (emotion === 'surprised' || emotion === 'fearful') {
+                ctx.arc(100, 140, 18, 0, 2 * Math.PI);
+            } else {
+                // neutral
+                ctx.moveTo(80, 135);
+                ctx.lineTo(120, 135);
+            }
+            ctx.stroke();
+        }
+
+        // Show neutral face at start
+        drawFace('neutral');
+
+        // Start camera
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true }); // <--- YOUR WEBCAM HERE
+                video.srcObject = stream;
+            } catch (err) {
+                loadingDiv.textContent = "Camera not available.";
+            }
+        }
+
+        // Load face-api.js models
+        async function loadModels() {
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/models';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+        }
+
+        // Pick the most probable emotion
+        function getDominantEmotion(expressions) {
+            let maxEmotion = 'neutral';
+            let maxProb = 0;
+            for (const [emotion, prob] of Object.entries(expressions)) {
+                if (prob > maxProb) {
+                    maxEmotion = emotion;
+                    maxProb = prob;
+                }
+            }
+            return maxEmotion;
+        }
+
+        // Main loop: detect faces and expressions
+        async function detectEmotion() {
+            const detections = await faceapi.detectSingleFace(
+                video,
+                new faceapi.TinyFaceDetectorOptions()
+            ).withFaceExpressions();
+
+            if (detections && detections.expressions) {
+                const dominantEmotion = getDominantEmotion(detections.expressions);
+                drawFace(dominantEmotion);
+                const emoji = EMOJIS[dominantEmotion] || '😐';
+                emotionLabel.textContent = emoji + ' ' + dominantEmotion.charAt(0).toUpperCase() + dominantEmotion.slice(1);
+            } else {
+                drawFace('neutral');
+                emotionLabel.textContent = "No face detected";
+            }
+            requestAnimationFrame(detectEmotion);
+        }
+
+        // Init
+        (async function () {
+            await loadModels();
+            loadingDiv.textContent = "Starting camera…";
+            await startCamera();
+            loadingDiv.style.display = "none";
+            detectEmotion();
+        })();
+    </script>
+</body>
+</html>

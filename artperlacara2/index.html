@@ -106,32 +106,6 @@
 
         drawFace('neutral');
 
-     <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Camera Only Test</title>
-</head>
-<body>
-    <h1>Camera Only Test</h1>
-    <video id="video" width="320" height="240" autoplay playsinline></video>
-    <div id="error" style="color:red"></div>
-    <script>
-      async function startCamera() {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          const video = document.getElementById('video');
-          video.srcObject = stream;
-          await video.play();
-        } catch (err) {
-          document.getElementById('error').textContent = "Camera error: " + err.name + " - " + err.message;
-          alert("Camera error: " + err.message + "\n\nCheck permissions, and try a different browser if needed.");
-        }
-      }
-      startCamera();
-    </script>
-</body>
-</html>
 
         async function loadModels() {
             const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/models';
@@ -177,5 +151,19 @@
             detectEmotion();
         })();
     </script>
+    <video id="video" width="320" height="240" autoplay muted playsinline></video>
+<script>
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+      await video.play();
+    } catch (err) {
+      alert('Camera error: ' + err.message);
+    }
+  }
+  startCamera();
+</script>
 </body>
 </html>

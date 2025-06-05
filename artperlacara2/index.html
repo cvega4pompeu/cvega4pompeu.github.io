@@ -106,21 +106,32 @@
 
         drawFace('neutral');
 
-        // IMPROVED CAMERA SETUP
-        async function startCamera() {
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("Your browser doesn't support camera access.");
-                }
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                await video.play();
-            } catch (err) {
-                loadingDiv.textContent = "Camera error: " + err.message;
-                alert("Camera error: " + err.message + "\n\nPlease check your camera permissions and try a different browser if the problem persists.");
-                console.error(err);
-            }
+     <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Camera Only Test</title>
+</head>
+<body>
+    <h1>Camera Only Test</h1>
+    <video id="video" width="320" height="240" autoplay playsinline></video>
+    <div id="error" style="color:red"></div>
+    <script>
+      async function startCamera() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          const video = document.getElementById('video');
+          video.srcObject = stream;
+          await video.play();
+        } catch (err) {
+          document.getElementById('error').textContent = "Camera error: " + err.name + " - " + err.message;
+          alert("Camera error: " + err.message + "\n\nCheck permissions, and try a different browser if needed.");
         }
+      }
+      startCamera();
+    </script>
+</body>
+</html>
 
         async function loadModels() {
             const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/models';
